@@ -26,16 +26,15 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
-import Details from './details'
+import AddRemark from './add-remark'
 
 interface Area {
-    id: number
+    reserveTime: string
+    name: string
+    people: number
     tableNumber: string
-    orderNumber: string
-    orderTime: string
-    content: string
-    payment: number
-    area_id: number
+    phoneNumber: string
+    remark: string
 }
 const formatDate = (dateString: string | number | Date) => {
     return new Date(dateString).toLocaleString();
@@ -43,7 +42,7 @@ const formatDate = (dateString: string | number | Date) => {
 
 export const columns: ColumnDef<Area>[] = [
     {
-        accessorKey: 'orderTime',
+        accessorKey: 'reserveTime',
         header: ({ column }) => {
             return (
                 <Button
@@ -53,22 +52,29 @@ export const columns: ColumnDef<Area>[] = [
                         column.toggleSorting(column.getIsSorted() === 'asc')
                     }
                 >
-                    日期
+                    預約時間
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             )
         },
         cell: ({ row }) => (
             <div className="flex items-center ml-4">
-                {formatDate(row.getValue('orderTime'))}
+                {formatDate(row.getValue('reserveTime'))}
             </div>
         ),
     },
     {
-        accessorKey: 'orderNumber',
-        header: '訂單編號',
+        accessorKey: 'name',
+        header: '顧客名稱',
         cell: ({ row }) => (
-            <div className="">{row.getValue('orderNumber')}</div>
+            <div className="">{row.getValue('name')}</div>
+        ),
+    },
+    {
+        accessorKey: 'people',
+        header: '到場人數',
+        cell: ({ row }) => (
+            <div className="">{row.getValue('people')}</div>
         ),
     },
     {
@@ -82,7 +88,7 @@ export const columns: ColumnDef<Area>[] = [
                         column.toggleSorting(column.getIsSorted() === 'asc')
                     }
                 >
-                    桌號
+                    預定桌號
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             )
@@ -93,33 +99,22 @@ export const columns: ColumnDef<Area>[] = [
                     ? (row.getValue('tableNumber') as string).slice(0, 10) + '...' 
                     : row.getValue('tableNumber')}
             </div>
+
         ),
     },
     {
-        accessorKey: 'payment',
-        header: () => <div className="">價錢</div>,
-        cell: ({ row }) => {
-            const amount = parseFloat(row.getValue('payment'))
-
-            // Format the amount as a dollar amount
-            const formatted = new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-            }).format(amount)
-
-            return <div className="font-medium">{formatted}</div>
-        },
+        accessorKey: 'phoneNumber',
+        header: '連絡電話',
+        cell: ({ row }) => (
+            <div className="">{row.getValue('phoneNumber')}</div>
+        ),
     },
     {
-        accessorKey: 'content',
-        header: () => <div className="text-left">訂單明細</div>,
-        cell: ({ row }) => {
-            const content = row.getValue('content')
-
-            return (
-                <Details id={row.original.id}/>
-            )
-        },
+        accessorKey: 'remark',
+        header: '備註',
+        cell: ({ row }) => (
+            <div className="">{row.getValue('remark')}</div>
+        ),
     },
 ]
 
@@ -128,7 +123,7 @@ export const columns: ColumnDef<Area>[] = [
 const UpdateTable = ({ initialAreas = [] }: { initialAreas: Area[] }) => {
     const [areas, setAreas] = useState<Area[]>(initialAreas);
     const [sorting, setSorting] = React.useState<SortingState>([
-        { id: 'orderTime', desc: true }, // 初始化时按照 'orderTime' 列倒序排序
+        { id: 'reserveTime', desc: true }, // 初始化时按照 'orderTime' 列倒序排序
     ]);
     const [columnFilters, setColumnFilters] =
         React.useState<ColumnFiltersState>([])
@@ -140,7 +135,7 @@ const UpdateTable = ({ initialAreas = [] }: { initialAreas: Area[] }) => {
 
     const fetchData = async () => {
         try {
-            const response = await fetch(`${apiUrl}/api/order-details`);
+            const response = await fetch(`${apiUrl}/api/reserve`);
             const result = await response.json();
             setAreas(result);
         } catch (error) {
@@ -181,11 +176,17 @@ const UpdateTable = ({ initialAreas = [] }: { initialAreas: Area[] }) => {
         <div>
             <div className="flex justify-between items-center py-4">
                 <Input
-                    placeholder="查詢訂單編號歷史紀錄..."
-                    value={(table.getColumn('orderNumber')?.getFilterValue() as string) ?? ''}
-                    onChange={(event) => table.getColumn('orderNumber')?.setFilterValue(event.target.value)}
+                    placeholder="查詢連絡電話..."
+                    value={(table.getColumn('phoneNumber')?.getFilterValue() as string) ?? ''}
+                    onChange={(event) => table.getColumn('phoneNumber')?.setFilterValue(event.target.value)}
                     className="max-w-sm"
                 />
+                <AddRemark>
+                    <Button variant="outline"
+                        className="ml-auto px-8 py-2 bg-[#bf6c41] text-white font-semibold hover:bg-[#8d4a28] hover:text-white">
+                        預定
+                    </Button>
+                </AddRemark>
             </div>
             <div className="rounded-md border">
                 <Table>
@@ -229,7 +230,7 @@ const UpdateTable = ({ initialAreas = [] }: { initialAreas: Area[] }) => {
                                     colSpan={columns.length}
                                     className="h-24 text-center"
                                 >
-                                    沒有此筆訂單名稱
+                                    沒有此連絡電話的預約
                                 </TableCell>
                             </TableRow>
                         )}

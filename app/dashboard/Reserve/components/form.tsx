@@ -13,9 +13,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import submitForm from './actions'
-import { useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import { TriangleAlert, SquareCheck } from 'lucide-react'
 import DateTimeReadOnly from './date-time-read-only'
+import SelectComponent from './select-table';
 
 export const schema = z.object({
     name: z.string(),
@@ -27,7 +28,7 @@ export const schema = z.object({
 })
 
 type FormMenuProps = { 
-    tableNumber: string;
+    areas: Area[];
 }
 
 export type Reserve = {
@@ -39,10 +40,18 @@ export type Reserve = {
     remark: string
 }
 
-const FormMenu = ({ tableNumber }: FormMenuProps) => {
+interface Area {
+    tableNumber: string
+    state: string
+    seats: number
+}
+
+const FormMenu: React.FC<FormMenuProps> = ({ areas }) => {
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const [successMessage, setsuccessMessage] = useState<string | null>(null)
-
+    const [availableTables, setAvailableTables] = useState<Area[]>([]);
+    const [selectedTable, setSelectedTable] = useState<string>('');
+    
     const form = useForm<z.infer<typeof schema>>({
         resolver: zodResolver(schema),
         defaultValues: {
@@ -54,6 +63,19 @@ const FormMenu = ({ tableNumber }: FormMenuProps) => {
             remark: "",
         },
     })
+
+    useEffect(() => {
+        // 當 areas 變更或人數變更時更新 availableTables
+        const peopleCount = Number(form.watch('people'));
+        if (!isNaN(peopleCount) && peopleCount > 0) {
+            const filteredTables = areas.filter(
+                area => area.state === '空桌' && area.seats >= peopleCount
+            );
+            setAvailableTables(filteredTables);
+        } else {
+            setAvailableTables([]);
+        }
+    }, [form.watch('people'), areas]);
 
     const onSubmit = async (data: z.infer<typeof schema>) => {
         setErrorMessage(null)
@@ -155,19 +177,17 @@ const FormMenu = ({ tableNumber }: FormMenuProps) => {
                     control={form.control}
                     name="tableNumber"
                     render={({ field }) => {
-                        // 確保 tableNumber 被存入表單狀態
-                        if (!field.value) {
-                            field.onChange(tableNumber);  // 手動將 tableNumber 設置到 field 中
-                        }
-
                         return (
-                            <FormItem className="flex items-center gap-2 px-4 py-2 justify-between text-black rounded-md hover:bg-slate-100">
-                                <FormLabel className='text-base font-semibold'>預定桌號</FormLabel>
-                                <FormControl>
-                                    {/* 顯示 tableNumber，不能修改 */}
-                                    <div className="rounded-md border border-gray-400 w-60 px-3 py-2 bg-gray-100">
-                                        {tableNumber} {/* 顯示傳入的 tableNumber */}
-                                    </div>
+                            <FormItem className="flex items-center gap-6 px-4 py-2 justify-between text-black rounded-md hover:bg-slate-100">
+                                <FormLabel className='text-base font-semibold '>預定桌號</FormLabel>
+                                <FormControl className="">
+                                    <SelectComponent 
+                                        availableTables={availableTables}
+                                        selectedTable={field.value} // 使用 form.watch 來獲取當前選中的桌號
+                                        onTableChange={(value) => {
+                                            field.onChange(value); // 使用 field.onChange 更新表單狀態
+                                        }}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

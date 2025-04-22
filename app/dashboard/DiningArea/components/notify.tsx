@@ -69,19 +69,28 @@ const notify : React.FC<Area> = ({tableNumber, areas_id, state}) => {
 
     return (
         <AlertDialog>
-            <AlertDialogTrigger>
+            <AlertDialogTrigger asChild>
                 <div>
                     {state === '已處理' ? (
-                        <Button variant="ghost" className="h-14 w-14 rounded-full" >
+                        <BellIcon className=" flex-end h-8 w-8 transition-transform transform hover:-translate-y-1 duration-200 ease-in-out" />
+                    ) : (
+                        <BellAlertIcon className="flex-end h-8 w-8 transition-transform transform hover:-translate-y-1 duration-200 ease-in-out" />
+                    )}
+                </div>
+            </AlertDialogTrigger>
+            {/* <AlertDialogTrigger asChild>
+                <div>
+                    {state === '已處理' ? (
+                        <Button variant="outline" className="h-14 w-14 rounded-full border border-white shadow-xl hover:shadow-lg transition-transform transform hover:-translate-y-1 duration-200 ease-in-out" >
                             <BellIcon className="flex-end h-6 w-6" />
                         </Button>
                     ) : (
-                        <Button className="bg-red-500 h-14 w-14 rounded-full hover:bg-red-500" >
+                        <Button className="bg-red-500 h-14 w-14 rounded-full  hover:bg-red-500 hover:shadow-lg transition-transform transform hover:-translate-y-1 duration-200 ease-in-out" >
                             <BellAlertIcon className="flex-end h-6 w-6" />
                         </Button>
                     )}
                 </div>
-            </AlertDialogTrigger>
+            </AlertDialogTrigger> */}
             <AlertDialogContent className="w-[400px] h-[160px]">
                 <div>
                     {state === '已處理' ? (

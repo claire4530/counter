@@ -39,7 +39,7 @@ const CarbonAnalysis : React.FC = () => {
     return (
         <Card className="col-span-3">
             <CardHeader>
-                <CardTitle>暢銷商品</CardTitle>
+                <CardTitle>碳排成長</CardTitle>
             </CardHeader>
             <CardContent>
                 <Select
